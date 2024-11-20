@@ -1,7 +1,4 @@
 name: 08 Expressions
-env:
-  WORKFLOW_VAR: This is a workflow-level variable
-  OVERWRITTEN: Default workflow value
 on:
   pull_request:   
   workflow_dispatch:
@@ -12,7 +9,9 @@ on:
       fail:
         type: boolean
         default: false
-
+env:
+  WORKFLOW_VAR: This is a workflow-level variable
+  OVERWRITTEN: Default workflow value
 jobs:
   debug-check:
     runs-on: ubuntu-latest
@@ -31,7 +30,7 @@ jobs:
       - name: \[Debug\] Triggered from Main
         if: ${{inputs.debug && github.ref_name == 'main' }}
         run: |
-          echo  "Triggered from main branch!"
+          echo  "Triggered from main branch!" 
 
       - name: Print Variables
         env:
@@ -41,15 +40,15 @@ jobs:
           echo  "Step var: ${{ env.STEP_VAR }}" 
           echo "Job var: ${{ env.JOB_VAR }}" 
           echo "Workflow var: ${{ env.WORKFLOW_VAR }}" 
-          echo "Overwritten: ${{ env.OVERWRITTEN }}"           
+          echo "Overwritten: ${{ env.OVERWRITTEN }}"  
 
       - name: Overwrite and Print
         env:
           OVERWRITTEN: Overwritten at step level.
-        if: ${{inputs.debug && github.ref_name == 'main' }}
+        if: ${{ inputs.debug && github.ref_name == 'main' }}
         run: |
           echo "Overwritten: ${{ env.OVERWRITTEN }}"
-
+        
   functions-pr-data:
     runs-on: ubuntu-latest
     steps:
@@ -59,19 +58,20 @@ jobs:
           echo " ${{github.event.pull_request.title}}"
           cat << EOF
               ${{ toJSON(github.event.pull_request.labels)}}
-           EOF
+          EOF
 
       - name: Bug Check
-        if: ${{!cancelled() && contains(github.event.pull_request.title,'fix') }}
+        if: ${{ !cancelled() && contains(github.event.pull_request.title,'fix') }}
         run: |
-          echo " This PR fixes a bug."
-         
-      - name: Sleep and Cancel       
+          echo "This PR fixes a bug."
+
+      - name: Sleep and Cancel 
+        shell: bash
         run: |
-          echo "sleep 20"
-          
-      - name: Failing Step      
-        if: ${{inputs.fail}}
+          sleep 20
+
+      - name: Failing Step  
+        if: ${{ inputs.fail }}
         run: |
           exit -1
 
@@ -79,17 +79,17 @@ jobs:
         if: success()       
         run: |
           echo "All previous steps succeeded."
-         
-      - name: Conditional Step - Failure   
+
+      - name: Conditional Step - Failure  
         if: failure()
         run: |
           echo "A previous step failed.
-          
-      - name: Print Always     
+
+      - name: Print Always
         if: ${{ !cancelled()}}
         run: |
           echo "This step runs unless the workflow is cancelled"
-          
+
       - name: On Cancel
         if: cancelled()       
         run: |
